@@ -33,6 +33,9 @@ def clean_dataset(ds, missing_threshold=0.3, retain_columns=None):
     removed_columns = [col for col in ds.columns if col not in columns_to_keep]
     print("Dataset cleaned. Columns removed:", removed_columns)
     
+    # Delete all rows that have NaN total_area_sqm
+    cleaned_ds = cleaned_ds.dropna(subset=['total_area_sqm', 'latitude', 'longitude'])
+
     return cleaned_ds
 
 
