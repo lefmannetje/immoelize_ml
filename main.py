@@ -1,34 +1,60 @@
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import cleaner
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import OneHotEncoder, MinMaxScaler
 from sklearn.metrics import mean_absolute_error, mean_squared_error,  root_mean_squared_error, mean_absolute_percentage_error
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn import svm
-import numpy as np
 
 dataset = pd.read_csv("data/properties.csv")
+''''   [id', 'price', 'property_type', 'subproperty_type', 'region',
+       'province', 'locality', 'zip_code', 'latitude', 'longitude',
+       'construction_year', 'total_area_sqm', 'surface_land_sqm',
+       'nbr_frontages', 'nbr_bedrooms', 'equipped_kitchen', 'fl_furnished',
+       'fl_open_fire', 'fl_terrace', 'terrace_sqm', 'fl_garden', 'garden_sqm',
+       'fl_swimming_pool', 'fl_floodzone', 'state_building',
+       'primary_energy_consumption_sqm', 'epc', 'heating_type',
+       'fl_double_glazing', 'cadastral_income']
+'''
 
+###################### CLEAN UP DATASET - START ######################
 # Step 1: Clean the dataset by removing columns with too many missing values
-cleaned_df = cleaner.clean_dataset(dataset)
+ds1 = cleaner.clean_dataset(dataset, missing_threshold=0.3, retain_columns=['surface_land_sqm'])
+''''
+    ['id', 'price', 'property_type', 'subproperty_type', 'region',
+    'province', 'locality', 'zip_code', 'latitude', 'longitude',
+    'total_area_sqm', 'nbr_bedrooms', 'fl_furnished', 'fl_open_fire',surface_land_sqm,
+    'fl_terrace', 'terrace_sqm', 'fl_garden', 'garden_sqm',
+    'fl_swimming_pool', 'fl_floodzone', 'fl_double_glazing']
+'''
 
 # Step 2: Replace NaN values with mean values for specific columns
-cleaned_df = cleaner.remove_NaN(cleaned_df)
+# ds2 = cleaner.remove_NaN(ds1)
+ds2 = ds1
+# Step 2.1: Manualy remove columns whe don't need
+ds2.drop(['id', 'subproperty_type', 'region', 'province',
+        'locality', 'latitude', 'longitude', 'fl_furnished',
+        'fl_floodzone', 'fl_double_glazing', 'fl_terrace',
+        'fl_garden' ], axis=1, inplace=True
+        )
 
-# Step 2.1: Further manualy clean DataFrame more
-cleaned_df.drop(['id', 'subproperty_type', 'region', 'province',  'locality', 'latitude', 'longitude', 'fl_furnished', 'fl_floodzone', 'fl_double_glazing', 'fl_terrace', 'fl_garden' ], axis=1, inplace=True)
+'''
+    ['price', 'property_type', 'zip_code', 'total_area_sqm', 'nbr_bedrooms',surface_land_sqm,
+    'fl_open_fire', 'terrace_sqm', 'garden_sqm', 'fl_swimming_pool']
+'''
+###################### CLEAN UP DATASET - STOP ######################
 
-# Step 3: Encode categorical features
-# 
-# Calculate mean price for each zip_code
-locality_price_means = cleaned_df.groupby('zip_code')['price'].mean()
 
-# Map the mean price to each zip_code in the dataset
-cleaned_df['zip_code_encoded'] = cleaned_df['zip_code'].map(locality_price_means)
-cleaned_df = cleaned_df.drop(['zip_code'], axis=1)
+###################### Feature Engineering - START ######################
+# Step 3: Add column price_per_sqm to check for outliers
+ds2['price_per_sqm'] = ds2['price']/ds2['total_area_sqm']
+
+# check for outliers
+ds2_stats = ds2['price_per_sqm'].describe()
+print(ds2_stats)
 
 # Step 3.1: min-Max of features ['total_area_sqm', 'nbr_bedrooms', 'terrace_sqm', 'garden_sqm', 'zip_code_encoded']
 features_to_scale = ['total_area_sqm', 'nbr_bedrooms', 'terrace_sqm', 'garden_sqm', 'zip_code_encoded']

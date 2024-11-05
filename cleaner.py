@@ -1,28 +1,38 @@
 import pandas as pd
 
-def clean_dataset(ds, missing_threshold=0.3):
+def clean_dataset(ds, missing_threshold=0.3, retain_columns=None):
     """
-    Cleans the dataset by removing columns with more than a specified threshold of missing values.
-    
+    Cleans the dataset by removing columns with more than a specified threshold of missing values,
+    but retains specified columns regardless of missing values.
+
     Parameters:
         ds (pd.DataFrame): The input dataset to clean.
         missing_threshold (float): The threshold for missing values, default is 0.3 (30%).
+        retain_columns (list): List of column names to retain in the cleaned dataset, regardless of missing values.
 
     Returns:
-        pd.DataFrame: A new DataFrame with columns containing less than the specified threshold of missing values.
+        pd.DataFrame: A new DataFrame with columns containing less than the specified threshold of missing values,
+                      plus any retained columns.
     """
+    if retain_columns is None:
+        retain_columns = []
+
     # Calculate the percentage of missing values per column
     missing_percentages = (ds.isna() | (ds == 'MISSING')).mean()
     
     # Filter columns where the percentage of missing values is less than the threshold
-    columns_to_keep = missing_percentages[missing_percentages < missing_threshold].index
+    columns_to_keep = missing_percentages[missing_percentages < missing_threshold].index.tolist()
+    
+    # Add the retained columns, ensuring no duplicates
+    columns_to_keep = list(set(columns_to_keep + retain_columns))
     
     # Create a new DataFrame with the filtered columns
     cleaned_ds = ds[columns_to_keep].copy()
     
     # Optional: Display the columns retained and removed
-    removed_columns = missing_percentages[missing_percentages >= missing_threshold].index.tolist()
-    print("Step 1: Dataset cleaned")
+    removed_columns = [col for col in ds.columns if col not in columns_to_keep]
+    print("Dataset cleaned. Columns removed:", removed_columns)
+    
     return cleaned_ds
 
 
@@ -60,6 +70,6 @@ def remove_NaN(ds):
         axis=1
     )
     
-    print("Step 2: NaN values replaced with mean values for terrace_sqm by property type and overall mean for garden_sqm.")
+    print("NaN values replaced with mean values for terrace_sqm by property type and overall mean for garden_sqm.")
     
     return ds
