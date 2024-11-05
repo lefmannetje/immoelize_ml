@@ -16,7 +16,7 @@ Immo Eliza wanted a prediction tool to assist both buyers and sellers in Belgium
 
 ## Data
 
-- **Dataset**: Trained on +/- 60k property listings in Belgium, houses as apartments.
+- **Dataset**: We used `data/properties.csv` as datset. After the cleanup we held on to +/- 60k property listings in Belgium, houses & apartments. The `data/cleaned_Dataset.csv` is alrdy cleaned and has the best score.
 
 ## Model Details
 
